@@ -1,53 +1,39 @@
-"""
-LogiRota — versão 1 (Aula 01).
-
-Núcleo de roteirização e análise de malha de entregas.
-
-Nesta versão o sistema já tem os pontos da malha, a fila de pedidos e a pilha
-de desfazer. Ainda não há rota: a malha ainda é uma lista, não um grafo.
-
-    python3 main.py
-"""
-
+from logirota.arvore import No, altura, desenhar, folhas, total_nos
 from logirota.fila import FilaDePedidos
-from logirota.pilha import PilhaDeOperacoes
-from logirota.ponto import Ponto
 
-PONTOS = [
-    Ponto("Centro de Distribuicao", "Centro", 0, 0),
-    Ponto("Farmacia Sao Paulo", "Barra", 3, 4),
-    Ponto("Mercado Bom Preco", "Safira", 6, 2),
-    Ponto("Escola Municipal", "Bela Vista", 1, 7),
-]
-
+# árvore montada à mão. A raiz é o centro de distribuição; cada nível
+# divide a cidade em duas. As folhas são os bairros atendidos.
+ZONAS = No(
+    "CD Muriae",
+    esquerda=No(
+        "Zona Norte",
+        esquerda=No("Barra"),
+        direita=No("Bela Vista"),
+    ),
+    direita=No(
+        "Zona Sul",
+        esquerda=No("Safira"),
+        direita=No(
+            "Distrito",
+            esquerda=No("Boa Familia"),
+        ),
+    ),
+)
 
 def main():
-    print("LogiRota — malha de entregas\n")
+    print("LogiRota - Hierarquia de zonas e bairros\n")
+    desenhar(ZONAS)
 
-    origem = PONTOS[0]
-    for destino in PONTOS[1:]:
-        print(f"  {origem} -> {destino}: {origem.distancia_ate(destino)} km")
+    print(f"\nraiz ...........: {ZONAS}")
+    print(f"altura ...........: {altura(ZONAS)}")
+    print(f"total de nós .....: {total_nos(ZONAS)}")
+    print(f"bairros ..........: {', '.join(folhas(ZONAS))}")
 
-    # A fila devolve na ordem de chegada.
+    # a fila de pedidos
     fila = FilaDePedidos()
-    for destino in PONTOS[1:]:
-        fila.enfileirar(destino)
-
-    print(f"\nFila com {len(fila)} pedidos. Proximo: {fila.frente()}")
-
-    # A pilha devolve na ordem inversa.
-    desfazer = PilhaDeOperacoes()
-    while not fila.vazia():
-        atendido = fila.desenfileirar()
-        desfazer.empilhar(atendido)
-        print(f"  atendido: {atendido}")
-
-    print("\nDesfazendo (ordem inversa):")
-    while not desfazer.vazia():
-        print(f"  desfeito: {desfazer.desempilhar()}")
-
-    print("\nA malha ainda e uma lista. A partir da Aula 06 ela vira um grafo.")
-
+    for bairro in folhas(ZONAS):
+        fila.enfileirar(bairro)
+    print(f"\n{len(fila)} bairros na fila: {fila.frente()}")
 
 if __name__ == "__main__":
     main()
