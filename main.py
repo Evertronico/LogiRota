@@ -1,18 +1,18 @@
 """
-LogiRota - versão 4 (Aula 04).
+LogiRota - versão 5 (Aula 05).
 
-Os percursos tornam a árvore auditável. Em-ordem prova que o índice de
-pontos (Aula 03) mantém os nomes em ordem alfabética. Pré-ordem e
-pós-ordem geram dois relatórios diferentes sobre a mesma hierarquia ze 
-zonas (Aula 02) - um do topo para os bairros, outro dos bairros para o
-topo.
+A Aula 03 já tinha mostrado o problema: os mesmos 7 pontos,
+inseridos em ordem alfabética, produzem uma ABB de altura 6 -
+praticamente uma lista encadeada. Esta versão resolve o 
+problema com uma única operação nova, a rotação, aplicada
+logo após cada inserção.
 """
 from logirota.abb import construir_indice
-from logirota.arvore import No
-from logirota.percurso import em_ordem, pos_ordem, pre_ordem
+from logirota.arvore import altura, desenhar, total_nos
+from logirota.balanceamento import constuir_indice_balanceado
 from logirota.ponto import Ponto
 
-# pontos de entrega da malha de muriaé
+# Os mesmos 7 pontos de entrega das aulas 03 e 04.
 PONTOS = [
     Ponto("Mercado da Barra", "Barra", 2, 8),
     Ponto("Farmácia Bela Vista", "Bela Vista", 6, 3),
@@ -23,35 +23,32 @@ PONTOS = [
     Ponto("Escola Norte", "Zona Norte", 3, 9)
 ]
 
-# A hierarquia de zonas da Aula 02, reaproveitada para os relatórios
-# de pré-ordem e pós-ordem
-ZONAS = No(
-    "CD Muriaé",
-    esquerda=No("Zona Norte", No("Barra"), No("Bela Vista")),
-    direita=No("Zona Sul",No("Safira"),No("Distrito", No("Boa Família")))
-)
-
 def main():
-    print("LogiRota - relatórios por percursos\n")
+    print("LogiRota - indice degenerado x indice balanceado\n")
 
-    # Em-ordem: esquerda, raiz, direita -> prova que ABB fica ordenada.
-    indice = construir_indice(PONTOS)
-    print("indice em-ordem (alfabética por nome)")
-    for ponto in em_ordem(indice):
-        print(f"    {ponto}")
+    """A mesma sequência de inserção, já em ordem alfabética - 
+    o pior cado identificado na Aula 03 - construída por
+    dois algoritmos
+    """
+    ordem_alfabetica = sorted(PONTOS, key=lambda p: p.nome)
 
-    # Pre-ordem: raiz, esquerda, direita -> manifesto do topo aos bairros
-    print(f"\nrelatorio de zonas - pre-ordem (do topo para os bairros):")
-    for zona in pre_ordem(ZONAS):
-         print(f"    {zona}")
+    degenerado = construir_indice(ordem_alfabetica)
+    balanceado = constuir_indice_balanceado(ordem_alfabetica)
 
-    # Pos-ordem: esquerda, direta, raiz -> zona só fecha após as subzonas.
-    print(f"\nrelatorio de zonas - pos-ordem (bairro fecha antes da zona):")
-    for zona in pos_ordem(ZONAS):
-         print(f"    {zona}")
+    print("\nindice SEM balanceamento:")
+    desenhar(degenerado)
+    print(f"total de pontos: {total_nos(degenerado)}")
+    print(f"altura ........: {altura(degenerado)}")
 
-    # Os tres percursos leem os mesmos nós, em ordens diferentes:
-    # a estrutura nao muda, so muda a pergunta que se faz a ela.
+    print("\nindice COM balanceamento:")
+    desenhar(balanceado)
+    print(f"total de pontos: {total_nos(balanceado)}")
+    print(f"altura ........: {altura(balanceado)}")
+
+    print(f"\n mesmos {total_nos(balanceado)} pontos.")
+    print(f"\n mesma ordem de inserção:")
+    print(f"altura sem balanceamento: {altura(degenerado)}")
+    print(f"altura com balanceamento: {altura(balanceado)}")
 
 if __name__ == "__main__":
       main();
