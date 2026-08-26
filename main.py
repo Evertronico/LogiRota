@@ -1,54 +1,75 @@
 """
-LogiRota - versão 5 (Aula 05).
+LogiRota — versão 6 (Aula 06).
 
-A Aula 03 já tinha mostrado o problema: os mesmos 7 pontos,
-inseridos em ordem alfabética, produzem uma ABB de altura 6 -
-praticamente uma lista encadeada. Esta versão resolve o 
-problema com uma única operação nova, a rotação, aplicada
-logo após cada inserção.
+O índice de pontos (ABB, Aulas 03–05) responde "onde está o ponto X".
+A malha viária responde uma pergunta diferente: "que ruas ligam X a
+outros pontos, e com que distância". Isso é um grafo, não uma árvore —
+não há raiz, e dois pontos podem se alcançar sem hierarquia entre eles.
+
+    python3 main.py
 """
-from logirota.abb import construir_indice
-from logirota.arvore import altura, desenhar, total_nos
-from logirota.balanceamento import constuir_indice_balanceado
+
+from logirota.grafo import GrafoLista, GrafoMatriz
 from logirota.ponto import Ponto
 
-# Os mesmos 7 pontos de entrega das aulas 03 e 04.
+# Os mesmos 7 pontos de entrega das aulas anteriores — agora vértices.
 PONTOS = [
-    Ponto("Mercado da Barra", "Barra", 2, 8),
-    Ponto("Farmácia Bela Vista", "Bela Vista", 6, 3),
+    Ponto("Mercado Barra", "Barra", 2, 8),
+    Ponto("Farmacia Bela Vista", "Bela Vista", 6, 3),
     Ponto("Oficina Safira", "Safira", 9, 5),
     Ponto("Padaria Distrito", "Distrito", 12, 1),
-    Ponto("Loja Boa Família", "Boa Família", 14, 0),
+    Ponto("Loja Boa Familia", "Boa Familia", 14, 0),
     Ponto("Posto Central", "Centro", 5, 5),
-    Ponto("Escola Norte", "Zona Norte", 3, 9)
+    Ponto("Escola Norte", "Zona Norte", 3, 9),
 ]
 
+# Ruas da malha: pares de nomes com ligacao direta. O peso de cada uma
+# nasce de Ponto.distancia_ate -- nao e um numero digitado a mao.
+RUAS = [
+    ("Escola Norte", "Mercado Barra"),
+    ("Mercado Barra", "Farmacia Bela Vista"),
+    ("Mercado Barra", "Posto Central"),
+    ("Farmacia Bela Vista", "Posto Central"),
+    ("Posto Central", "Oficina Safira"),
+    ("Posto Central", "Padaria Distrito"),
+    ("Oficina Safira", "Padaria Distrito"),
+    ("Padaria Distrito", "Loja Boa Familia"),
+]
+
+
+def montar(grafo):
+    for a, b in RUAS:
+        grafo.adicionar_rua(a, b)
+    return grafo
+
+
 def main():
-    print("LogiRota - indice degenerado x indice balanceado\n")
+    print("LogiRota - malha viaria: duas representacoes\n")
 
-    """A mesma sequência de inserção, já em ordem alfabética - 
-    o pior cado identificado na Aula 03 - construída por
-    dois algoritmos
-    """
-    ordem_alfabetica = sorted(PONTOS, key=lambda p: p.nome)
+    matriz = montar(GrafoMatriz(PONTOS))
+    lista = montar(GrafoLista(PONTOS))
 
-    degenerado = construir_indice(ordem_alfabetica)
-    balanceado = constuir_indice_balanceado(ordem_alfabetica)
+    print(f"vertices (pontos) ..............: {len(PONTOS)}")
+    print(f"ruas cadastradas ................: {len(RUAS)}")
+    print(f"celulas da matriz (v ao quadrado): {matriz.total_celulas()}")
+    print(f"entradas da lista (2 x ruas) .....: {lista.total_arestas_armazenadas()}")
 
-    print("\nindice SEM balanceamento:")
-    desenhar(degenerado)
-    print(f"total de pontos: {total_nos(degenerado)}")
-    print(f"altura ........: {altura(degenerado)}")
+    print("\nvizinhanca -- mesma pergunta, duas representacoes:")
+    pares = [
+        ("Mercado Barra", "Posto Central"),
+        ("Escola Norte", "Padaria Distrito"),
+        ("Oficina Safira", "Loja Boa Familia"),
+    ]
+    for a, b in pares:
+        vm = matriz.sao_vizinhos(a, b)
+        vl = lista.sao_vizinhos(a, b)
+        print(f"  {a} <-> {b}: matriz={vm}  lista={vl}")
 
-    print("\nindice COM balanceamento:")
-    desenhar(balanceado)
-    print(f"total de pontos: {total_nos(balanceado)}")
-    print(f"altura ........: {altura(balanceado)}")
+    # As duas representacoes respondem exatamente a mesma pergunta.
+    # O que muda e o espaco: a matriz reserva v^2 celulas mesmo para
+    # os pares sem rua; a lista so guarda o que existe de fato, ao
+    # custo de percorrer os vizinhos de um vertice para responder.
 
-    print(f"\n mesmos {total_nos(balanceado)} pontos.")
-    print(f"\n mesma ordem de inserção:")
-    print(f"altura sem balanceamento: {altura(degenerado)}")
-    print(f"altura com balanceamento: {altura(balanceado)}")
 
 if __name__ == "__main__":
-      main();
+    main()
