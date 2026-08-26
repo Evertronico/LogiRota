@@ -51,13 +51,6 @@ class GrafoMatriz:
         i, j = self._indice[nome_a], self._indice[nome_b]
         return self._matriz[i][j] is not None
 
-    def vizinhos(self, nome):
-        """Nomes dos vizinhos de um vértice: percorre a linha inteira,
-        cadastrada ou não — custo O(v), o mesmo para qualquer vértice."""
-        i = self._indice[nome]
-        return [self._pontos[j].nome for j in range(len(self._pontos))
-                if self._matriz[i][j] is not None]
-
     def total_celulas(self):
         """Células alocadas, ocupadas ou não — o custo de espaço real."""
         return len(self._pontos) ** 2
@@ -87,11 +80,6 @@ class GrafoLista:
             if vizinho == nome_b:
                 return True
         return False
-
-    def vizinhos(self, nome):
-        """Nomes dos vizinhos de um vértice: só o que de fato existe,
-        custo O(grau do vértice) — não O(v) como na matriz."""
-        return [vizinho for vizinho, _peso in self._vizinhos[nome]]
 
     def total_arestas_armazenadas(self):
         """Entradas guardadas de fato — o custo de espaço real."""
