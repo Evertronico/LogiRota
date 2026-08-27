@@ -1,18 +1,19 @@
 """
-LogiRota — versão 6 (Aula 06).
+LogiRota — versão 7 (Aula 07).
 
-O índice de pontos (ABB, Aulas 03–05) responde "onde está o ponto X".
-A malha viária responde uma pergunta diferente: "que ruas ligam X a
-outros pontos, e com que distância". Isso é um grafo, não uma árvore —
-não há raiz, e dois pontos podem se alcançar sem hierarquia entre eles.
+A Aula 06 construiu a malha viária como grafo. Esta versão percorre essa
+mesma malha de duas formas — BFS e DFS — e usa a busca para responder
+uma pergunta de negócio: existe algum ponto de entrega para o qual
+nenhuma rua cadastrada leva?
 
     python3 main.py
 """
 
-from logirota.grafo import GrafoLista, GrafoMatriz
+from logirota.busca import bfs, componentes_conexos, dfs
+from logirota.grafo import GrafoLista
 from logirota.ponto import Ponto
 
-# Os mesmos 7 pontos de entrega das aulas anteriores — agora vértices.
+# Os mesmos 7 pontos de entrega das aulas anteriores.
 PONTOS = [
     Ponto("Mercado Barra", "Barra", 2, 8),
     Ponto("Farmacia Bela Vista", "Bela Vista", 6, 3),
@@ -21,10 +22,10 @@ PONTOS = [
     Ponto("Loja Boa Familia", "Boa Familia", 14, 0),
     Ponto("Posto Central", "Centro", 5, 5),
     Ponto("Escola Norte", "Zona Norte", 3, 9),
+    # Cadastrado no sistema, mas nenhuma rua liga este ponto aos demais.
+    Ponto("Farmacia Ilha", "Ilha", 25, 25),
 ]
 
-# Ruas da malha: pares de nomes com ligacao direta. O peso de cada uma
-# nasce de Ponto.distancia_ate -- nao e um numero digitado a mao.
 RUAS = [
     ("Escola Norte", "Mercado Barra"),
     ("Mercado Barra", "Farmacia Bela Vista"),
@@ -37,38 +38,39 @@ RUAS = [
 ]
 
 
-def montar(grafo):
+def montar():
+    grafo = GrafoLista(PONTOS)
     for a, b in RUAS:
         grafo.adicionar_rua(a, b)
     return grafo
 
 
 def main():
-    print("LogiRota - malha viaria: duas representacoes\n")
+    print("LogiRota - BFS, DFS e conectividade da malha\n")
 
-    matriz = montar(GrafoMatriz(PONTOS))
-    lista = montar(GrafoLista(PONTOS))
+    grafo = montar()
+    origem = "Posto Central"
 
-    print(f"vertices (pontos) ..............: {len(PONTOS)}")
-    print(f"ruas cadastradas ................: {len(RUAS)}")
-    print(f"celulas da matriz (v ao quadrado): {matriz.total_celulas()}")
-    print(f"entradas da lista (2 x ruas) .....: {lista.total_arestas_armazenadas()}")
+    ordem_bfs = bfs(grafo, origem)
+    ordem_dfs = dfs(grafo, origem)
 
-    print("\nvizinhanca -- mesma pergunta, duas representacoes:")
-    pares = [
-        ("Mercado Barra", "Posto Central"),
-        ("Escola Norte", "Padaria Distrito"),
-        ("Oficina Safira", "Loja Boa Familia"),
-    ]
-    for a, b in pares:
-        vm = matriz.sao_vizinhos(a, b)
-        vl = lista.sao_vizinhos(a, b)
-        print(f"  {a} <-> {b}: matriz={vm}  lista={vl}")
+    print(f"partindo de '{origem}':\n")
+    print(f"  BFS (fila) .: {' -> '.join(ordem_bfs)}")
+    print(f"  DFS (pilha) : {' -> '.join(ordem_dfs)}")
+    print("\n  mesmo grafo, mesma origem: a ordem muda porque a estrutura")
+    print("  auxiliar muda - fila devolve por camadas, pilha mergulha fundo.")
 
-    # As duas representacoes respondem exatamente a mesma pergunta.
-    # O que muda e o espaco: a matriz reserva v^2 celulas mesmo para
-    # os pares sem rua; a lista so guarda o que existe de fato, ao
-    # custo de percorrer os vizinhos de um vertice para responder.
+    nomes = [ponto.nome for ponto in PONTOS]
+    componentes = componentes_conexos(grafo, nomes)
+
+    print(f"\ncomponentes conexos da malha ({len(componentes)}):")
+    for grupo in componentes:
+        print(f"  {{{', '.join(grupo)}}}")
+
+    if len(componentes) > 1:
+        isolados = [g[0] for g in componentes if len(g) == 1]
+        print(f"\n  atencao: {', '.join(isolados)} nao tem rua cadastrada -")
+        print("  nenhuma entrega alcanca esse ponto partindo dos demais.")
 
 
 if __name__ == "__main__":
