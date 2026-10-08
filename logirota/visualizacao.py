@@ -1,18 +1,3 @@
-"""
-Visualização da malha viária do LogiRota — Aula 08.
-
-Este módulo é fornecido pronto: tkinter é biblioteca padrão do Python, mas a
-sintaxe de Canvas não é o assunto desta disciplina. O que a aula ensina é o
-contrato deste módulo, não sua implementação:
-
-  o que ele LÊ    Ponto.nome/x/y, e listas de nomes (ruas, rota)
-  o que ele NUNCA TOCA    Grafo, dijkstra, reconstruir_caminho — nenhuma
-                          decisão de malha ou de rota é tomada aqui dentro
-
-`mostrar_mapa` já nasce pensada para as aulas seguintes: `destaque` marca um
-único ponto (a Aula 09 vai usar isso para o resultado de uma busca) sem que
-a assinatura precise mudar depois.
-"""
 
 import math
 import tkinter as tk
@@ -21,13 +6,8 @@ _MARGEM = 60
 _RAIO_PONTO = 22
 _LADOS_CIRCULO = 24
 
-
 def _linha(canvas, x1, y1, x2, y2, largura, cor):
-    """Desenha uma linha grossa como um polígono fino, e não com
-    create_line: em algumas instalações recentes do Tk, create_line e
-    create_oval simplesmente não pintam na tela (o item existe no canvas,
-    mas nunca aparece), enquanto create_polygon sempre funcionou nos
-    mesmos testes. create_polygon desenha o mesmo resultado visual."""
+
     comprimento = math.hypot(x2 - x1, y2 - y1) or 1
     ox = -(y2 - y1) / comprimento * largura / 2
     oy = (x2 - x1) / comprimento * largura / 2
@@ -35,10 +15,8 @@ def _linha(canvas, x1, y1, x2, y2, largura, cor):
                            x2 - ox, y2 - oy, x1 - ox, y1 - oy,
                            fill=cor, outline=cor)
 
-
 def _circulo(canvas, cx, cy, raio, fill, outline, largura):
-    """Mesma ideia de `_linha`: um círculo aproximado por um polígono
-    regular de muitos lados, no lugar de create_oval."""
+
     pontos = []
     for i in range(_LADOS_CIRCULO):
         angulo = 2 * math.pi * i / _LADOS_CIRCULO
@@ -46,10 +24,8 @@ def _circulo(canvas, cx, cy, raio, fill, outline, largura):
         pontos.append(cy + raio * math.sin(angulo))
     canvas.create_polygon(*pontos, fill=fill, outline=outline, width=largura)
 
-
 def _calcular_transformacao(pontos, largura, altura):
-    """Devolve uma função que converte (x, y) do domínio do LogiRota em
-    (x, y) de pixel, cabendo dentro da margem do Canvas."""
+
     xs = [p.x for p in pontos]
     ys = [p.y for p in pontos]
     x_min, x_max = min(xs), max(xs)
@@ -66,7 +42,6 @@ def _calcular_transformacao(pontos, largura, altura):
         return px, py
 
     return transformar
-
 
 def _desenhar(canvas, pontos, ruas, rota=None, destaque=None):
     largura = int(canvas["width"])
@@ -94,27 +69,15 @@ def _desenhar(canvas, pontos, ruas, rota=None, destaque=None):
         canvas.create_text(px, py + _RAIO_PONTO + 14, text=ponto.nome,
                             font=("Helvetica", 11))
 
-
 def mostrar_mapa(pontos, ruas, rota=None, destaque=None,
                   titulo="LogiRota — Malha Viária"):
-    """Abre uma janela mostrando os pontos e as ruas do LogiRota.
 
-    rota: lista de nomes (saída de reconstruir_caminho) — desenhada em
-    destaque sobre a malha. destaque: um único nome de ponto a marcar,
-    sem rota — pronto para a Aula 09 usar com o resultado de uma busca.
-    """
     janela = tk.Tk()
     janela.title(titulo)
     canvas = tk.Canvas(janela, width=900, height=560, bg="white")
     canvas.pack()
     _desenhar(canvas, pontos, ruas, rota=rota, destaque=destaque)
 
-    # Em algumas instalacoes, a janela nasce sem ser "ativada" pelo
-    # sistema: a moldura aparece, mas o Canvas so e realmente pintado
-    # depois que a janela e redimensionada ou movida uma vez. Em vez de
-    # depender do usuario arrastar a janela, forcamos programaticamente
-    # um redimensionamento minimo (1px maior e depois de volta), o que
-    # dispara a mesma repintura.
     janela.update_idletasks()
     largura_janela = janela.winfo_width()
     altura_janela = janela.winfo_height()
@@ -128,3 +91,4 @@ def mostrar_mapa(pontos, ruas, rota=None, destaque=None,
     janela.focus_force()
 
     janela.mainloop()
+
