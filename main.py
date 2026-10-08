@@ -1,5 +1,5 @@
 """
-LogiRota — versão 7 (Aula 07).
+LogiRota — versão 7 (Aula 07) Daniel.
 
 A Aula 06 construiu a malha viária como grafo. Esta versão percorre essa
 mesma malha de duas formas — BFS e DFS — e usa a busca para responder
