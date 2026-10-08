@@ -9,46 +9,62 @@ nenhuma rua cadastrada leva?
     python3 main.py
 """
 
+from logirota import banco
 from logirota.busca import bfs, componentes_conexos, dfs
 from logirota.grafo import GrafoLista
 from logirota.ponto import Ponto
 
-# Os mesmos 7 pontos de entrega das aulas anteriores.
-PONTOS = [
-    Ponto("Mercado Barra", "Barra", 2, 8),
-    Ponto("Farmacia Bela Vista", "Bela Vista", 6, 3),
-    Ponto("Oficina Safira", "Safira", 9, 5),
-    Ponto("Padaria Distrito", "Distrito", 12, 1),
-    Ponto("Loja Boa Familia", "Boa Familia", 14, 0),
-    Ponto("Posto Central", "Centro", 5, 5),
-    Ponto("Escola Norte", "Zona Norte", 3, 9),
-    # Cadastrado no sistema, mas nenhuma rua liga este ponto aos demais.
-    Ponto("Farmacia Ilha", "Ilha", 25, 25),
-]
+# # Dados iniciais: so sao gravados no banco se ele estiver vazio.
+# PONTOS_INICIAIS = [
+#     ("Mercado Barra", "Barra", 2, 8),
+#     ("Farmacia Bela Vista", "Bela Vista", 6, 3),
+#     ("Oficina Safira", "Safira", 9, 5),
+#     ("Padaria Distrito", "Distrito", 12, 1),
+#     ("Loja Boa Familia", "Boa Familia", 14, 0),
+#     ("Posto Central", "Centro", 5, 5),
+#     ("Escola Norte", "Zona Norte", 3, 9),
+#     ("Farmacia Ilha", "Ilha", 25, 25),
+# ]
 
-RUAS = [
-    ("Escola Norte", "Mercado Barra"),
-    ("Mercado Barra", "Farmacia Bela Vista"),
-    ("Mercado Barra", "Posto Central"),
-    ("Farmacia Bela Vista", "Posto Central"),
-    ("Posto Central", "Oficina Safira"),
-    ("Posto Central", "Padaria Distrito"),
-    ("Oficina Safira", "Padaria Distrito"),
-    ("Padaria Distrito", "Loja Boa Familia"),
-]
+# RUAS_INICIAIS = [
+#     ("Escola Norte", "Mercado Barra"),
+#     ("Mercado Barra", "Farmacia Bela Vista"),
+#     ("Mercado Barra", "Posto Central"),
+#     ("Farmacia Bela Vista", "Posto Central"),
+#     ("Posto Central", "Oficina Safira"),
+#     ("Posto Central", "Padaria Distrito"),
+#     ("Oficina Safira", "Padaria Distrito"),
+#     ("Padaria Distrito", "Loja Boa Familia"),
+# ]
+
+
+def popular_se_vazio():
+    if len(banco.listar_pontos()) > 0:
+        return
+    for nome, bairro, x, y in PONTOS_INICIAIS:
+        banco.salvar_ponto(nome, bairro, x, y)
+    for origem, destino in RUAS_INICIAIS:
+        banco.salvar_rua(origem, destino)
+    banco.salvar_pedido("Mercado Barra")
 
 
 def montar():
-    grafo = GrafoLista(PONTOS)
-    for a, b in RUAS:
-        grafo.adicionar_rua(a, b)
-    return grafo
+    # converte as tuplas do banco em objetos Ponto (responsabilidade do main)
+    pontos = [Ponto(nome, bairro, x, y)
+              for nome, bairro, x, y in banco.listar_pontos()]
+    grafo = GrafoLista(pontos)
+    for origem, destino in banco.listar_ruas():
+        grafo.adicionar_rua(origem, destino)
+    return grafo, pontos
 
 
 def main():
     print("LogiRota - BFS, DFS e conectividade da malha\n")
 
-    grafo = montar()
+    banco.inicializar()
+    popular_se_vazio()
+
+    grafo, PONTOS = montar()
     origem = "Posto Central"
 
     ordem_bfs = bfs(grafo, origem)
@@ -66,6 +82,10 @@ def main():
     print(f"\ncomponentes conexos da malha ({len(componentes)}):")
     for grupo in componentes:
         print(f"  {{{', '.join(grupo)}}}")
+
+    print("\npedidos pendentes:")
+    for id_pedido, destino, status in banco.listar_pedidos_pendentes():
+        print(f"  #{id_pedido} {destino} ({status})")
 
     if len(componentes) > 1:
         isolados = [g[0] for g in componentes if len(g) == 1]
