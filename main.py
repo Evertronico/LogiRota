@@ -1,32 +1,19 @@
-"""
-LogiRota — versão 7 (Aula 07).
-
-A Aula 06 construiu a malha viária como grafo. Esta versão percorre essa
-mesma malha de duas formas — BFS e DFS — e usa a busca para responder
-uma pergunta de negócio: existe algum ponto de entrega para o qual
-nenhuma rua cadastrada leva?
-
-    python3 main.py
-"""
-
-from logirota.busca import bfs, componentes_conexos, dfs
+from logirota import banco
+from logirota.busca import bfs, dfs, componentes_conexos
 from logirota.grafo import GrafoLista
 from logirota.ponto import Ponto
 
-# Os mesmos 7 pontos de entrega das aulas anteriores.
-PONTOS = [
-    Ponto("Mercado Barra", "Barra", 2, 8),
-    Ponto("Farmacia Bela Vista", "Bela Vista", 6, 3),
-    Ponto("Oficina Safira", "Safira", 9, 5),
-    Ponto("Padaria Distrito", "Distrito", 12, 1),
-    Ponto("Loja Boa Familia", "Boa Familia", 14, 0),
-    Ponto("Posto Central", "Centro", 5, 5),
-    Ponto("Escola Norte", "Zona Norte", 3, 9),
-    # Cadastrado no sistema, mas nenhuma rua liga este ponto aos demais.
-    Ponto("Farmacia Ilha", "Ilha", 25, 25),
+PONTOS_INICIAIS = [
+    ("Mercado Barra", "Barra", 2, 8),
+    ("Farmacia Bela Vista", "Bela Vista", 6, 3),
+    ("Oficina Safira", "Safira", 9, 5),
+    ("Padaria Distrito", "Distrito", 12, 1),
+    ("Loja Boa Familia", "Boa Familia", 14, 0),
+    ("Posto Central", "Centro", 5, 5),
+    ("Escola Norte", "Zona Norte", 3, 9),
+    ("Farmacia Ilha", "Ilha", 25, 25),
 ]
-
-RUAS = [
+RUAS_INICIAIS = [
     ("Escola Norte", "Mercado Barra"),
     ("Mercado Barra", "Farmacia Bela Vista"),
     ("Mercado Barra", "Posto Central"),
@@ -37,41 +24,36 @@ RUAS = [
     ("Padaria Distrito", "Loja Boa Familia"),
 ]
 
+def preparar_banco():
+    banco.inicializar()
+    if not banco.listar_pontos():
+        for nome, bairro, x, y in PONTOS_INICIAIS:
+            banco.salvar_ponto(Ponto(nome, bairro, x, y))
+        for origem, destino in RUAS_INICIAIS:
+            banco.salvar_rua(origem, destino)
 
 def montar():
-    grafo = GrafoLista(PONTOS)
-    for a, b in RUAS:
-        grafo.adicionar_rua(a, b)
-    return grafo
-
+    pontos = [Ponto(*dados) for dados in banco.listar_pontos()]
+    grafo = GrafoLista(pontos)
+    for origem, destino in banco.listar_ruas():
+        grafo.adicionar_rua(origem, destino)
+    return grafo, pontos
 
 def main():
-    print("LogiRota - BFS, DFS e conectividade da malha\n")
-
-    grafo = montar()
+    preparar_banco()
+    grafo, pontos = montar()
+    print("LogiRota - Semana 1: dados carregados do SQLite")
+    print(f"Pontos: {len(pontos)} | Ruas: {len(banco.listar_ruas())}")
     origem = "Posto Central"
-
-    ordem_bfs = bfs(grafo, origem)
-    ordem_dfs = dfs(grafo, origem)
-
-    print(f"partindo de '{origem}':\n")
-    print(f"  BFS (fila) .: {' -> '.join(ordem_bfs)}")
-    print(f"  DFS (pilha) : {' -> '.join(ordem_dfs)}")
-    print("\n  mesmo grafo, mesma origem: a ordem muda porque a estrutura")
-    print("  auxiliar muda - fila devolve por camadas, pilha mergulha fundo.")
-
-    nomes = [ponto.nome for ponto in PONTOS]
-    componentes = componentes_conexos(grafo, nomes)
-
-    print(f"\ncomponentes conexos da malha ({len(componentes)}):")
-    for grupo in componentes:
-        print(f"  {{{', '.join(grupo)}}}")
-
-    if len(componentes) > 1:
-        isolados = [g[0] for g in componentes if len(g) == 1]
-        print(f"\n  atencao: {', '.join(isolados)} nao tem rua cadastrada -")
-        print("  nenhuma entrega alcanca esse ponto partindo dos demais.")
-
+    if origem in [p.nome for p in pontos]:
+        print("BFS:", " -> ".join(bfs(grafo, origem)))
+        print("DFS:", " -> ".join(dfs(grafo, origem)))
+    grupos = componentes_conexos(grafo, [p.nome for p in pontos])
+    print("Componentes conexos:", len(grupos))
+    pedidos = banco.listar_pedidos_pendentes()
+    print("Pedidos pendentes:", len(pedidos))
+    for numero, destino, status in pedidos:
+        print(f"  #{numero} - {destino} ({status})")
 
 if __name__ == "__main__":
     main()
