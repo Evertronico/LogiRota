@@ -1,0 +1,6 @@
+.git
+.venv
+slides
+docs
+logirota.db
+__pycache__

@@ -1,0 +1,36 @@
+# Semana 1 - banco PostgreSQL do LogiRota em container.
+#
+#   docker compose up -d db                              sobe so o banco
+#   docker compose run --rm app                          roda o main.py contra o banco
+#   docker compose run --rm app --pedido "Oficina Safira"
+#
+# Os dados ficam no volume logirota_dados: sobrevivem a
+# "docker compose down" e "up" (so "down -v" apaga).
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: logirota
+      POSTGRES_PASSWORD: logirota
+      POSTGRES_DB: logirota
+    ports:
+      - "5432:5432"
+    volumes:
+      - logirota_dados:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U logirota -d logirota"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://logirota:logirota@db:5432/logirota
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  logirota_dados:
