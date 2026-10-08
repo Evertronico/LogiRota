@@ -1,4 +1,6 @@
 """
+
+branch Gleicekelly
 LogiRota — versão 7 (Aula 07).
 
 A Aula 06 construiu a malha viária como grafo. Esta versão percorre essa
