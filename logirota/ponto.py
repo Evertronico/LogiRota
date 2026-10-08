@@ -29,6 +29,14 @@ class Ponto:
     def bairro(self):
         return self._bairro
 
+    @property
+    def x(self):
+        return self._x
+
+    @property
+    def y(self):
+        return self._y
+    
     def distancia_ate(self, outro):
         """Distância em linha reta até outro ponto, em quilômetros."""
         dx = self._x - outro._x

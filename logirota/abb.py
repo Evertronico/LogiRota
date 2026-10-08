@@ -16,7 +16,7 @@ Reaproveita de logirota/arvore.py:
     No, esquerda, direita, altura, desenhar
 """
 
-from logirota.arvore import No
+from LogiRota.arvore import No
 
 
 def inserir(raiz, ponto):

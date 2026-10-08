@@ -13,13 +13,13 @@ negócio direta: a malha inteira é alcançável a partir de qualquer ponto,
 ou existem zonas isoladas para as quais nenhuma rua cadastrada leva?
 
 Reaproveita:
-    FilaDePedidos de logirota/fila.py       (BFS)
-    PilhaDeOperacoes de logirota/pilha.py   (DFS)
-    GrafoMatriz/GrafoLista.vizinhos()       de logirota/grafo.py
+    FilaDePedidos de LogiRota/fila.py       (BFS)
+    PilhaDeOperacoes de LogiRota/pilha.py   (DFS)
+    GrafoMatriz/GrafoLista.vizinhos()       de LogiRota/grafo.py
 """
 
-from logirota.fila import FilaDePedidos
-from logirota.pilha import PilhaDeOperacoes
+from LogiRota.fila import FilaDePedidos
+from LogiRota.pilha import PilhaDeOperacoes
 
 
 def bfs(grafo, origem):
