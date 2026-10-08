@@ -57,6 +57,13 @@ class GrafoMatriz:
         i = self._indice[nome]
         return [self._pontos[j].nome for j in range(len(self._pontos))
                 if self._matriz[i][j] is not None]
+    
+    def vizinhos_com_peso(self, nome):
+        """Pares (vizinho, peso) de um vertice - o que o Dijkstra precisa."""
+        i = self._indice[nome]
+        return [(self._pontos[j].nome, self._matriz[i][j])
+                for j in range(len(self._pontos))
+                if self._matriz[i][j] is not None]
 
     def total_celulas(self):
         """Células alocadas, ocupadas ou não — o custo de espaço real."""
@@ -92,6 +99,10 @@ class GrafoLista:
         """Nomes dos vizinhos de um vértice: só o que de fato existe,
         custo O(grau do vértice) — não O(v) como na matriz."""
         return [vizinho for vizinho, _peso in self._vizinhos[nome]]
+    
+    def vizinhos_com_peso(self, nome):
+        """Pares (vizinho, peso) de um vertice - o que o Dijkstra precisa."""
+        return list(self._vizinhos[nome])
 
     def total_arestas_armazenadas(self):
         """Entradas guardadas de fato — o custo de espaço real."""
